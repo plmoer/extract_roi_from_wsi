@@ -50,14 +50,15 @@ def main():
             value_in_segs = valid_Ele[temp_med_idx]
             ratio_x, ratio_y = get_location(  # get relative position in ratio
                 temp_med_idx, valid_Ele, percentile, segments)
-
+            nSubLoop = 0
             # try different center points within the region
-            while np.logical_and(bValid == False, nLoop < 20):
+            while np.logical_and(bValid == False, nSubLoop < 20):
                 nFactor = np.random.uniform(0.7, 1.3)
                 ratio_x_temp, ratio_y_temp = ratio_x*nFactor, ratio_y*nFactor
                 roi = get_roi(wsi_file_path, tile_size,
                               ratio_x_temp, ratio_y_temp)
                 bValid = verification(roi)
+                nSubLoop = nSubLoop+1
                 nLoop = nLoop + 1
             invalid_index = ave_list.index(max(ave_list))
             # remove the region with larest mean intensity
