@@ -40,29 +40,30 @@ def main():
         temp_segments = segments.copy()
         ave_list, valid_Ele = get_valid_area(thumbnail, percentile, segments)
 
-        # fig = plt.figure("Superpixels -- %d segments" % (100))
-        # ax = fig.add_subplot(1, 1, 1)
-        plt.imshow(mark_boundaries(thumbnail, segments))
-        # plt.axis("off")
-        plt.show()
+        # plt.imshow(mark_boundaries(thumbnail, segments))
+        # plt.show()
         nMaxLoop = len(valid_Ele)-1
-        while np.logical_and(bValid == False, nLoop < nMaxLoop):
-            # find the index of average intensity at percentile
+
+        while np.logical_and(bValid == False, nLoop < nMaxLoop):  # try different regions
+            # get region at the given percentile
             temp_med_idx = get_region_idx(ave_list, percentile)
-            # get the value in super-pixels
             value_in_segs = valid_Ele[temp_med_idx]
-            ratio_x, ratio_y = get_location(
+            ratio_x, ratio_y = get_location(  # get relative position in ratio
                 temp_med_idx, valid_Ele, percentile, segments)
-            roi = get_roi(wsi_file_path, tile_size, ratio_x, ratio_y)
-            bValid = verification(roi)
-            if bValid == False:
-                invalid_index = ave_list.index(max(ave_list))
-                # remove the region with larest mean intensity
-                ave_list.pop(invalid_index)
-                valid_Ele.pop(invalid_index)
-                # ave_list.remove(ave_list[temp_med_idx])
-                # valid_Ele.remove(valid_Ele[temp_med_idx])
-            nLoop = nLoop + 1
+
+            # try different center points within the region
+            while np.logical_and(bValid == False, nLoop < 20):
+                nFactor = np.random.uniform(0.7, 1.3)
+                ratio_x_temp, ratio_y_temp = ratio_x*nFactor, ratio_y*nFactor
+                roi = get_roi(wsi_file_path, tile_size,
+                              ratio_x_temp, ratio_y_temp)
+                bValid = verification(roi)
+                nLoop = nLoop + 1
+            invalid_index = ave_list.index(max(ave_list))
+            # remove the region with larest mean intensity
+            ave_list.pop(invalid_index)
+            valid_Ele.pop(invalid_index)
+
             temp_segments[np.where(temp_segments == value_in_segs)] = 600*nLoop
             print('.. loop times:', nLoop)
 
